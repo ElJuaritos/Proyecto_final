@@ -22,7 +22,7 @@ from prim     import prim
 
 
 # Ruta a los datos — relativa a este archivo
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent.parent / "datos"
 
 
 class ExplorerService:

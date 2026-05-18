@@ -3,7 +3,7 @@
 // Cada keystroke llama al endpoint /autocomplete que usa el Trie del backend.
 
 import { useState, useEffect, useRef } from "react";
-import { getAutocomplete } from "./client.js";
+import { getAutocomplete } from "../client.js";
 
 export default function SearchBar({ placeholder, onSelect, value }) {
   const [input, setInput]         = useState(value || "");

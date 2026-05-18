@@ -9,7 +9,7 @@ import {
   postShortestPath,
   getMST,
   postNearby,
-} from "./client.js";
+} from "../client.js";
 
 export default function Home() {
   const [atracciones, setAtracciones] = useState([]);
