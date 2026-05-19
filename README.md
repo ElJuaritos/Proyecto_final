@@ -86,7 +86,7 @@ Esta documentación explica paso a paso el propósito y funcionamiento de cada u
 **Paso a paso:**
 1. Selecciona un nodo inicial cualquiera (el primero de la lista) y lo marca como parte del árbol.
 2. Mete todas las conexiones (aristas) de ese nodo a una cola de prioridad (Heap).
-3. **Ciclo Voraz (Greedy):** 
+3. **Ciclo:** 
    - Mientras haya aristas en el heap y falten nodos por conectar, saca la arista más barata.
    - Revisa el destino de esa arista. Si ya está en el árbol, la descarta (para evitar ciclos).
    - Si es un nodo nuevo, lo agrega al árbol, suma el costo total y mete todas las conexiones de este nuevo nodo al heap.
