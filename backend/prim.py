@@ -3,13 +3,6 @@ ALGORITMO: Prim — Árbol de Expansión Mínima (MST)
 ===================================================
 Construye la red de menor costo total que conecta TODAS las atracciones.
 
-Caso de uso turístico: "¿Cuál es la red mínima de rutas de transporte
-que conecta todos los puntos de interés con el menor costo posible?"
-
-Intuición: Empezamos con un nodo cualquiera y crecemos el árbol
-agregando siempre la arista más barata que conecta un nodo NUEVO.
-Es voraz (greedy): en cada paso tomamos la mejor decisión local.
-
 Diferencia con Dijkstra:
 - Dijkstra: minimiza distancia desde UN origen a todos los demás
 - Prim:     minimiza el PESO TOTAL del árbol que conecta TODOS los nodos
@@ -21,15 +14,15 @@ Complejidad: O(E log V)
 
 import heapq
 from graph import GrafoTuristico
-
+import numpy as np
 
 def prim(grafo: GrafoTuristico, modo: str = "tiempo") -> dict:
     """
     Genera el Árbol de Expansión Mínima con el algoritmo de Prim.
     
-    Parámetros:
-        grafo: El grafo de atracciones.
-        modo:  "tiempo" o "costo" — define qué peso minimizar.
+    
+    @param    grafo: El grafo de atracciones.
+    @param    modo:  "tiempo" o "costo" — define qué peso minimizar.
     
     Retorna:
         - aristas:      lista de conexiones seleccionadas para el MST
@@ -41,62 +34,70 @@ def prim(grafo: GrafoTuristico, modo: str = "tiempo") -> dict:
     if not ids:
         return {"aristas": [], "total_tiempo": 0, "total_costo": 0}
 
-    # ── Inicialización ───────────────────────────────────────────────
-    en_mst: set[int] = set()         # Nodos ya incluidos en el árbol
-    aristas_mst = []                  # Aristas seleccionadas
+    pi: dict[int, int | None] = {} # Nodo anterior en el MST
+    llave: dict[int, float] = {} # Costo mínimo para conectar cada nodo al MST
+    tiempos_arista: dict[int, int] = {}
+    costos_arista: dict[int, int] = {}
+    en_mst: set[int] = set() # Nodos ya incluidos en el árbol
+    aristas_mst = [] # Aristas seleccionadas
 
     total_tiempo = 0
     total_costo  = 0
 
-    # Empezamos desde el primer nodo
+    for v in ids:
+        pi[v] = None
+        llave[v] = np.inf
+        tiempos_arista[v] = 0
+        costos_arista[v] = 0
+
     nodo_inicial = ids[0]
-    en_mst.add(nodo_inicial)
+    llave[nodo_inicial] = 0
 
-    # ── Priority Queue ───────────────────────────────────────────────
-    # Heap de candidatos: (peso, origen_id, destino_id, tiempo, costo)
-    heap = []
-    for conexion in grafo.vecinos(nodo_inicial):
-        peso = (conexion.tiempo_min if modo == "tiempo"
-                else conexion.costo_pesos)
-        heapq.heappush(heap, (peso, nodo_inicial,
-                               conexion.destino_id,
-                               conexion.tiempo_min,
-                               conexion.costo_pesos))
+    # El heap guarda tuplas: (llave, nodo_id)
+    Q = []
+    for v in ids:
+        heapq.heappush(Q, (llave[v], v))
 
-    # ── Ciclo Principal ──────────────────────────────────────────────
-    # Repetimos hasta incluir todos los nodos
-    while heap and len(en_mst) < len(ids):
-        # Extraemos la arista más barata disponible
-        peso, origen, destino, tiempo, costo = heapq.heappop(heap)
+    # Ciclo principal
+    while Q and len(en_mst) < len(ids):
+        llave_actual, u = heapq.heappop(Q)
 
-        # Si el destino ya está en el MST, esta arista crearía un ciclo → saltamos
-        if destino in en_mst:
+        if u in en_mst:
             continue
 
-        # ¡Agregamos este nodo al árbol!
-        en_mst.add(destino)
-        total_tiempo += tiempo
-        total_costo  += costo
+        if llave_actual == np.inf:
+            break
 
-        # Guardamos la arista seleccionada con nombres legibles
-        aristas_mst.append({
-            "de":        grafo.get_atraccion(origen).nombre,
-            "hacia":     grafo.get_atraccion(destino).nombre,
-            "de_id":     origen,
-            "hacia_id":  destino,
-            "tiempo_min": tiempo,
-            "costo_pesos": costo
-        })
+        en_mst.add(u)
 
-        # Exploramos las aristas del nuevo nodo añadido
-        for conexion in grafo.vecinos(destino):
-            if conexion.destino_id not in en_mst:
-                p = (conexion.tiempo_min if modo == "tiempo"
-                     else conexion.costo_pesos)
-                heapq.heappush(heap, (p, destino,
-                                       conexion.destino_id,
-                                       conexion.tiempo_min,
-                                       conexion.costo_pesos))
+        if pi[u] is not None:
+            origen = pi[u]
+            destino = u
+            total_tiempo += tiempos_arista[u]
+            total_costo += costos_arista[u]
+            aristas_mst.append({
+                "de":        grafo.get_atraccion(origen).nombre,
+                "hacia":     grafo.get_atraccion(destino).nombre,
+                "de_id":     origen,
+                "hacia_id":  destino,
+                "tiempo_min": tiempos_arista[u],
+                "costo_pesos": costos_arista[u]
+            })
+
+        for conexion in grafo.vecinos(u):
+            v = conexion.destino_id
+            if v in en_mst:
+                continue
+
+            peso_arista = (conexion.tiempo_min if modo == "tiempo"
+                           else conexion.costo_pesos)
+
+            if peso_arista < llave[v]:
+                llave[v] = peso_arista
+                pi[v] = u
+                tiempos_arista[v] = conexion.tiempo_min
+                costos_arista[v] = conexion.costo_pesos
+                heapq.heappush(Q, (llave[v], v))
 
     return {
         "aristas": aristas_mst,
