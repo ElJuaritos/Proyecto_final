@@ -1,11 +1,5 @@
 """
-ALGORITMO: Prim — Árbol de Expansión Mínima (MST)
-===================================================
-Construye la red de menor costo total que conecta TODAS las atracciones.
-
-Diferencia con Dijkstra:
-- Dijkstra: minimiza distancia desde UN origen a todos los demás
-- Prim:     minimiza el PESO TOTAL del árbol que conecta TODOS los nodos
+ALGORITMO: Prim — Árbol de Expansión Mínima (MST): Construye la red de menor costo total que conecta TODAS las atracciones.
 
 Complejidad: O(E log V)
 - E inserciones al heap: O(log V) cada una

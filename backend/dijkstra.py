@@ -1,7 +1,5 @@
 """
-ALGORITMO: Dijkstra — Ruta Más Corta
-======================================
-Encuentra el camino de menor costo entre dos nodos en un grafo ponderado.
+ALGORITMO: Dijkstra — Ruta Más Corta: Encuentra el camino de menor costo entre dos nodos en un grafo ponderado.
 
 Complejidad: O((V + E) log V)
 - V operaciones de extracción del heap: cada una cuesta O(log V)
