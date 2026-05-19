@@ -106,6 +106,6 @@ def prim(grafo: GrafoTuristico, modo: str = "tiempo") -> dict:
         "nodos_conectados": len(en_mst),
         "total_nodos": len(ids),
         "modo": modo,
-        # Nota: si nodos_conectados < total_nodos, el grafo es desconectado
+        # Pues, si nodos_conectados < total_nodos, el grafo es desconectado
         "es_conexo": len(en_mst) == len(ids)
     }

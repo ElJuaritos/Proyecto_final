@@ -18,11 +18,10 @@ def dijkstra(grafo: GrafoTuristico, origen_id: int, destino_id: int,
     """
     Encuentra la ruta más corta entre origen y destino.
     
-    Parámetros:
-        grafo:      El grafo de atracciones.
-        origen_id:  ID de la atracción de inicio.
-        destino_id: ID de la atracción objetivo.
-        modo:       "tiempo" (minutos) o "costo" (pesos MXN).
+    @param    grafo:      El grafo de atracciones.
+    @param    origen_id:  ID de la atracción de inicio.
+    @param    destino_id: ID de la atracción objetivo.
+    @param    modo:       "tiempo" (minutos) o "costo" (pesos MXN).
     
     Retorna un dict con:
         - camino:      lista de nombres de atracciones en orden
