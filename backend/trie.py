@@ -1,10 +1,3 @@
-"""
-ESTRUCTURA: Trie (Árbol de Prefijos)
-======================================
-Implementación basada en el código visto en clase, adaptada para
-mantener la compatibilidad con el frontend (búsqueda y autocompletado
-de atracciones con IDs).
-"""
 
 class nodoTrie:
     def __init__(self):
@@ -22,11 +15,10 @@ class Trie:
         self.raiz = nodoTrie()
         self.cant = 0
   
-    # ── MÉTODOS ORIGINALES DE CLASE ──────────────────────────────────
   
     def agregar(self, palabra):
         actual = self.raiz
-        # Normalizamos a minúsculas como lo hacía el proyecto original
+
         palabra_norm = palabra.lower()
         for simbolo in palabra_norm:
             if simbolo not in actual.hijos:
@@ -88,16 +80,11 @@ class Trie:
         palabra, cont = self.agregada_max(actual, prefijo_norm)
         return palabra
 
-    # ── ADAPTADORES PARA EL PROYECTO ─────────────────────────────────
     
     def insertar(self, nombre: str, atraccion_id: int):
-        """
-        Llama al método agregar de clase y guarda metadatos para el frontend.
-        """
-        # 1. Ejecutamos tu lógica original
+
         self.agregar(nombre)
         
-        # 2. Navegamos al nodo final para inyectar el ID y nombre real (con mayúsculas)
         actual = self.raiz
         for simbolo in nombre.lower():
             actual = actual.hijos[simbolo]
@@ -106,10 +93,7 @@ class Trie:
         actual.nombre_completo = nombre
 
     def _recolectar_palabras_dict(self, nodo: nodoTrie, resultado: list):
-        """
-        Recorre todos los hijos y devuelve la lista de resultados con IDs 
-        para que el frontend pueda mostrarlos en el menú desplegable.
-        """
+
         if nodo.fin and nodo.atraccion_id is not None:
             resultado.append({
                 "id": nodo.atraccion_id,
@@ -119,10 +103,7 @@ class Trie:
             self._recolectar_palabras_dict(hijo, resultado)
 
     def autocomplete(self, prefijo: str) -> list[dict]:
-        """
-        Método requerido por explorer_service.py. Devuelve lista de 
-        resultados en lugar de solo el más repetido.
-        """
+
         actual = self.raiz
         prefijo_norm = prefijo.lower()
         for simbolo in prefijo_norm:

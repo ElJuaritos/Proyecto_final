@@ -1,33 +1,29 @@
-"""
-ESTRUCTURA: KD-Tree 2D
-========================
-Implementación adaptada del código de clase, manteniendo la compatibilidad
-con el resto del proyecto para cálculo de distancias reales (Haversine).
-"""
+#Implementacion del kd tree para encontrar atracciones cercanas con un radio especifico
 
 import math
 from dataclasses import dataclass
 
+#Distancia real en km   
+
 def _distancia_haversine(lat1: float, lon1: float,
                           lat2: float, lon2: float) -> float:
-    R = 6371  # Radio de la Tierra en km
+    R = 6371  #Radio de la Tierra en km
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlambda = math.radians(lon2 - lon1)
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)) #Devuelve la distancia real en km entre dos puntos en una esfera.
 
 
 @dataclass
 class PuntoKD:
-    """Un punto en el espacio 2D con metadatos de la atracción."""
     lat: float
     lon: float
     atraccion_id: int
     nombre: str
 
-    # Permite que la instancia se comporte como una lista (punto[0], punto[1], len(punto))
-    # tal como el código de clase lo espera.
+    #Permite acceder a los elementos como si fuera una lista (punto[0], punto[1], len(punto))        
+
     def __len__(self):
         return 2
 
@@ -71,7 +67,6 @@ class kdtree:
     def crear(self, lista):
         self.raiz = self._crear(lista)
 
-    # Alias para compatibilidad con explorer_service.py
     def construir(self, puntos):
         self.crear(puntos)
 
@@ -104,10 +99,8 @@ class kdtree:
         return mejor_punto, mejor_distancia
 
     def distancia(self, punto1, punto2):
-        # Distancia Euclidiana (como en clase)
         return sum((a - b) ** 2 for a, b in zip(punto1, punto2))
 
-    # --- Método adicional para compatibilidad con el frontend (búsqueda geoespacial) ---
     def buscar_por_radio(self, lat: float, lon: float, radio_km: float) -> list[dict]:
         resultado = []
         self._buscar_radio(self.raiz, lat, lon, radio_km, resultado, 0)
@@ -118,7 +111,6 @@ class kdtree:
         if nodo_actual is None:
             return
 
-        # Calculamos distancia real en kilómetros
         dist = _distancia_haversine(lat, lon, nodo_actual.punto.lat, nodo_actual.punto.lon)
         if dist <= radio_km:
             resultado.append({
@@ -131,9 +123,8 @@ class kdtree:
         val_nodo = nodo_actual.punto[eje]
         val_query = lat if eje == 0 else lon
         
-        # Poda
         dist_plano = abs(val_query - val_nodo)
-        radio_grados = radio_km / 111.0 # 1 grado ~ 111km aproximado
+        radio_grados = radio_km / 111.0 
 
         if val_query < val_nodo:
             self._buscar_radio(nodo_actual.izq, lat, lon, radio_km, resultado, profundidad + 1)
@@ -144,5 +135,4 @@ class kdtree:
             if dist_plano <= radio_grados:
                 self._buscar_radio(nodo_actual.izq, lat, lon, radio_km, resultado, profundidad + 1)
 
-# Alias para que explorer_service.py pueda instanciarlo sin cambios
 KDTree = kdtree
