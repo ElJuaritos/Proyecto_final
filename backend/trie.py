@@ -1,104 +1,135 @@
 """
 ESTRUCTURA: Trie (Árbol de Prefijos)
 ======================================
-Usamos un Trie para implementar autocompletado de nombres de atracciones.
-
-¿Por qué Trie y no simplemente filtrar con str.startswith()?
-- startswith() recorre TODA la lista cada vez: O(N * m)
-  donde N = número de atracciones, m = longitud del prefijo
-- Trie responde en O(m) sin importar cuántas atracciones hay
-- Los prefijos se comparten en memoria (eficiente)
-
-Complejidad:
-- Inserción:     O(m)  donde m = longitud de la palabra
-- Búsqueda:      O(m)
-- Autocompletado: O(m + k) donde k = número de resultados
+Implementación basada en el código visto en clase, adaptada para
+mantener la compatibilidad con el frontend (búsqueda y autocompletado
+de atracciones con IDs).
 """
 
-
-class NodoTrie:
-    """Un nodo del Trie: guarda un carácter y sus hijos."""
+class nodoTrie:
     def __init__(self):
-        # Mapa de carácter -> hijo NodoTrie
-        self.hijos: dict[str, "NodoTrie"] = {}
-        # ¿Termina aquí una palabra completa?
-        self.es_fin: bool = False
-        # Si es fin, guardamos el id de la atracción
-        self.atraccion_id: int | None = None
-        # Nombre completo original (para devolver al usuario)
-        self.nombre_completo: str | None = None
+        self.hijos = {}
+        self.fin = False
+        self.cont = 0  # cuántas veces se agregó esta palabra
+        
+        # Atributos adicionales para el proyecto
+        self.atraccion_id = None
+        self.nombre_completo = None
 
 
 class Trie:
-    """
-    Árbol de prefijos para búsqueda y autocompletado de atracciones.
-    
-    Normalizamos a minúsculas para búsquedas case-insensitive.
-    """
-
     def __init__(self):
-        self.raiz = NodoTrie()
+        self.raiz = nodoTrie()
+        self.cant = 0
+  
+    # ── MÉTODOS ORIGINALES DE CLASE ──────────────────────────────────
+  
+    def agregar(self, palabra):
+        actual = self.raiz
+        # Normalizamos a minúsculas como lo hacía el proyecto original
+        palabra_norm = palabra.lower()
+        for simbolo in palabra_norm:
+            if simbolo not in actual.hijos:
+                actual.hijos[simbolo] = nodoTrie()
+            actual = actual.hijos[simbolo]
+            
+        if not actual.fin:
+            actual.fin = True
+            self.cant += 1
 
+        actual.cont += 1  
+       
+    def buscar(self, palabra):
+        existe = True
+        actual = self.raiz
+        palabra_norm = palabra.lower()
+        for simbolo in palabra_norm:
+            if simbolo not in actual.hijos:
+                existe = False
+            else:
+                actual = actual.hijos[simbolo]
+        if actual.fin == False:
+            existe = False
+        return existe
+    
+    def buscaR(self, palabra, actual):
+        if actual is None:
+            return False
+        if len(palabra) == 0:
+            return actual.fin
+        if palabra[0].lower() not in actual.hijos:
+            return False
+        return self.buscaR(palabra[1:], actual.hijos[palabra[0].lower()])
+    
+    def agregada_max(self, nodo, prefijo_actual):
+        mejor_palabra = ""
+        mejor_cont = 0
+
+        if nodo.fin:
+            mejor_palabra = prefijo_actual
+            mejor_cont = nodo.cont
+
+        for letra, hijo in nodo.hijos.items():
+            palabra_candidata, cont_candidato = self.agregada_max(hijo, prefijo_actual + letra)
+            if cont_candidato > mejor_cont:
+                mejor_cont = cont_candidato
+                mejor_palabra = palabra_candidata
+
+        return mejor_palabra, mejor_cont
+
+    def completar_palabra(self, prefijo):
+        actual = self.raiz
+        prefijo_norm = prefijo.lower()
+        for simbolo in prefijo_norm:
+            if simbolo not in actual.hijos:
+                return None  
+            actual = actual.hijos[simbolo]
+
+        palabra, cont = self.agregada_max(actual, prefijo_norm)
+        return palabra
+
+    # ── ADAPTADORES PARA EL PROYECTO ─────────────────────────────────
+    
     def insertar(self, nombre: str, atraccion_id: int):
         """
-        Inserta un nombre en el Trie.
-        Complejidad: O(m) donde m = len(nombre)
+        Llama al método agregar de clase y guarda metadatos para el frontend.
         """
-        nodo = self.raiz
-        # Normalizamos a minúsculas para búsqueda insensible a mayúsculas
-        for caracter in nombre.lower():
-            if caracter not in nodo.hijos:
-                nodo.hijos[caracter] = NodoTrie()
-            nodo = nodo.hijos[caracter]
-        # Marcamos el final y guardamos metadatos
-        nodo.es_fin = True
-        nodo.atraccion_id = atraccion_id
-        nodo.nombre_completo = nombre
+        # 1. Ejecutamos tu lógica original
+        self.agregar(nombre)
+        
+        # 2. Navegamos al nodo final para inyectar el ID y nombre real (con mayúsculas)
+        actual = self.raiz
+        for simbolo in nombre.lower():
+            actual = actual.hijos[simbolo]
+            
+        actual.atraccion_id = atraccion_id
+        actual.nombre_completo = nombre
 
-    def _navegar_hasta_prefijo(self, prefijo: str) -> NodoTrie | None:
+    def _recolectar_palabras_dict(self, nodo: nodoTrie, resultado: list):
         """
-        Navega el Trie hasta el nodo que corresponde al prefijo.
-        Retorna None si el prefijo no existe.
-        Complejidad: O(m)
+        Recorre todos los hijos y devuelve la lista de resultados con IDs 
+        para que el frontend pueda mostrarlos en el menú desplegable.
         """
-        nodo = self.raiz
-        for caracter in prefijo.lower():
-            if caracter not in nodo.hijos:
-                return None   # Prefijo no encontrado
-            nodo = nodo.hijos[caracter]
-        return nodo
-
-    def _recolectar_palabras(self, nodo: NodoTrie, resultado: list):
-        """
-        DFS desde un nodo: recoge todas las palabras que cuelgan de él.
-        Esto nos da todos los autocompletados posibles.
-        """
-        if nodo.es_fin:
+        if nodo.fin and nodo.atraccion_id is not None:
             resultado.append({
                 "id": nodo.atraccion_id,
                 "nombre": nodo.nombre_completo
             })
         for hijo in nodo.hijos.values():
-            self._recolectar_palabras(hijo, resultado)
+            self._recolectar_palabras_dict(hijo, resultado)
 
     def autocomplete(self, prefijo: str) -> list[dict]:
         """
-        Devuelve todas las atracciones cuyo nombre empieza con `prefijo`.
-        Complejidad: O(m + k) donde k = número de resultados.
-        
-        Ejemplo: autocomplete("cha") -> [{"id": 3, "nombre": "Chapultepec"}]
+        Método requerido por explorer_service.py. Devuelve lista de 
+        resultados en lugar de solo el más repetido.
         """
-        nodo = self._navegar_hasta_prefijo(prefijo)
-        if nodo is None:
-            return []   # Ninguna atracción tiene ese prefijo
-        resultado = []
-        self._recolectar_palabras(nodo, resultado)
-        return resultado
+        actual = self.raiz
+        prefijo_norm = prefijo.lower()
+        for simbolo in prefijo_norm:
+            if simbolo not in actual.hijos:
+                return []  # No hay coincidencias
+            actual = actual.hijos[simbolo]
 
-    def buscar_exacto(self, nombre: str) -> bool:
-        """
-        Verifica si un nombre exacto existe en el Trie.
-        Complejidad: O(m)
-        """
-        nodo = self._navegar_hasta_prefijo(nombre)
-        return nodo is not None and nodo.es_fin
+        resultado = []
+        self._recolectar_palabras_dict(actual, resultado)
+        return resultado
