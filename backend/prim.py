@@ -14,7 +14,6 @@ def prim(grafo: GrafoTuristico, modo: str = "tiempo") -> dict:
     """
     Genera el Árbol de Expansión Mínima con el algoritmo de Prim.
     
-    
     @param    grafo: El grafo de atracciones.
     @param    modo:  "tiempo" o "costo" — define qué peso minimizar.
     

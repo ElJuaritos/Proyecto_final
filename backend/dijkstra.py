@@ -19,7 +19,7 @@ def dijkstra(grafo: GrafoTuristico, origen_id: int, destino_id: int,
     @param    grafo:      El grafo de atracciones.
     @param    origen_id:  ID de la atracción de inicio.
     @param    destino_id: ID de la atracción objetivo.
-    @param    modo:       "tiempo" (minutos) o "costo" (pesos MXN).
+    @param    modo:       "tiempo" (minutos) o "costo" (pesos mexicanos).
     
     Retorna un dict con:
         - camino:      lista de nombres de atracciones en orden
