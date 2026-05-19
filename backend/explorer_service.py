@@ -37,8 +37,7 @@ class ExplorerService:
         self.trie    = Trie()
         self._cargar_datos()
 
-    # ── Carga de datos ───────────────────────────────────────────────
-
+    # Se cargan los datos
     def _cargar_datos(self):
         """
         Lee los tres CSVs con pandas y puebla las estructuras de datos.
@@ -73,7 +72,6 @@ class ExplorerService:
             puntos_kd.append(PuntoKD(atraccion.latitud, atraccion.longitud,
                                       atraccion.id, atraccion.nombre))
 
-        # ── conexiones.csv → aristas del grafo ──────────────────────
         df_conexiones = pd.read_csv(DATA_DIR / "conexiones.csv")
         for _, fila in df_conexiones.iterrows():
             self.grafo.agregar_arista(
@@ -83,14 +81,11 @@ class ExplorerService:
                 int(fila["costo_pesos"])
             )
 
-        # ── KD-Tree: construcción O(N log N) ────────────────────────
         self.kd_tree.construir(puntos_kd)
 
         print(f"✓ {self.grafo} cargado")
         print(f"✓ KD-Tree construido con {len(puntos_kd)} puntos")
         print(f"✓ Trie cargado con {len(puntos_kd)} atracciones")
-
-    # ── Métodos de consulta ──────────────────────────────────────────
 
     def ruta_mas_corta(self, origen_nombre: str, destino_nombre: str,
                        modo: str = "tiempo") -> dict:
@@ -150,8 +145,6 @@ class ExplorerService:
             }
             for a in self.grafo.nodos.values()
         ]
-
-    # ── Utilidades internas ──────────────────────────────────────────
 
     def _nombre_a_id(self, nombre: str) -> int | None:
         """Busca el ID de una atracción por nombre (case-insensitive)."""

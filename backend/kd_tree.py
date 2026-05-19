@@ -105,7 +105,7 @@ class kdtree:
         resultado = []
         self._buscar_radio(self.raiz, lat, lon, radio_km, resultado, 0)
         resultado.sort(key=lambda x: x["distancia_km"])
-        return resultado
+        return resultado[1:]
 
     def _buscar_radio(self, nodo_actual, lat: float, lon: float, radio_km: float, resultado: list, profundidad: int):
         if nodo_actual is None:
